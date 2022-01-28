@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -25,7 +26,7 @@ import socketserver
 # run: python freetests.py
 
 # try: curl -v -X GET http://127.0.0.1:8080/
-
+baseurl = "http://127.0.0.1:8080"
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
@@ -33,6 +34,67 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
         self.request.sendall(bytearray("OK",'utf-8'))
+        decoded_data = self.data.decode('utf-8')
+        request = decoded_data.split()
+        method = request[0]
+        path = request[1]
+
+        if self.check_method(method):
+            self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed", 'utf-8'))
+            
+        elif self.check_path(path):
+            self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n", 'utf-8'))
+
+        else:
+            self.response(method, path)
+            
+
+    def check_method(self, method):
+        if method != "GET":
+            return True
+        else:
+            return False
+
+    def check_path(self, path):
+        if "/." in path or "/.." in path:
+            return True
+        else:
+            return False
+
+    def response(self, method, path):
+        full_path = os.path.abspath('www'+path)
+        if os.path.isfile(full_path):
+            if full_path.endswith("html"):
+
+                file = open(path)
+                serving_file = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
+                file.close()
+
+            elif full_path.endswith("css"):
+                
+                file = open(path)
+                serving_file = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n{serving_file}', 'utf-8'))
+                file.close()
+
+        elif full_path.isdir(full_path):
+            if full_path.endswith("/"):
+                path = path + "index.html"
+                full_path = os.path.abspath('www'+path)
+
+                file = open(path)
+                serving_file = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
+                file.close()
+
+            else:
+                new_route = path + '/'
+                self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation: " + baseurl + new_route + "\r\n", 'utf-8'))
+
+        else:
+            self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n", 'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
