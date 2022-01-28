@@ -62,7 +62,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             return False
 
     def response(self, method, path):
-        full_path = os.path.abspath('www'+path)
+        full_path = os.path.join(os.getcwd()+"/www"+request_route)
         print(full_path)
 
         if os.path.isfile(full_path):
@@ -83,7 +83,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         elif os.path.isdir(full_path):
             if full_path.endswith("/"):
                 path = path + "index.html"
-                full_path = os.path.abspath('www'+path)
+                full_path = os.path.join(os.getcwd()+"/www"+request_route)
 
                 file = open(path)
                 serving_file = file.read()
