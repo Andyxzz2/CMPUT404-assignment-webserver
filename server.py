@@ -66,33 +66,29 @@ class MyWebServer(socketserver.BaseRequestHandler):
         print(full_path)
 
         if os.path.isfile(full_path):
-            if full_path.endswith("html"):
-
-                file = open(path)
-                serving_file = file.read()
-                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
-                file.close()
-
-            elif full_path.endswith("css"):
-                
-                file = open(path)
-                serving_file = file.read()
-                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n{serving_file}', 'utf-8'))
-                file.close()
-
-        elif os.path.isdir(full_path):
-            if full_path.endswith("/"):
-                path = path+'index.html'
-                full_path = os.path.join(os.getcwd()+"/www"+path)
+            if full_path.endswith(".html"):
 
                 file = open(full_path)
                 serving_file = file.read()
                 self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
                 file.close()
 
+            elif full_path.endswith(".css"):
+                
+                file = open(full_path)
+                serving_file = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n{serving_file}', 'utf-8'))
+                file.close()
+
+        elif os.path.isdir(full_path):
+            if full_path.endswith('/'):
+                default_path = full_path+'index.html'
+                file = open(default_path)
+                serving_file = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
+                file.close()
             else:
-                new_route = path + '/'
-                self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation: " + baseurl + new_route + "\r\n", 'utf-8'))
+                self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation: " + baseurl + path+'/'+"\r\n", 'utf-8'))
 
         else:
             self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n", 'utf-8'))
