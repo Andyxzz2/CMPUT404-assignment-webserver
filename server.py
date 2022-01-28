@@ -70,7 +70,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def response(self, method, path):
 
         #get full path and compare in local
-        full_path = os.path.join(os.getcwd()+"/www"+path)
+        full_path = os.path.abspath('www'+path)
 
         #if the given pass is a file, check if it is a html request or css request
         if os.path.isfile(full_path):
@@ -93,8 +93,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
             
             #if dir ends with /, add 'index.html' to open it
             if full_path.endswith('/'):
-                default_route = path +'index.html'
-                full_path = os.path.join(os.getcwd()+"/www"+default_route)
+                new_route = path +'index.html'
+                full_path = os.path.join(os.getcwd()+"/www"+new_route)
                 file = open(full_path)
                 data = file.read()
                 self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{data}\r\n', 'utf-8'))

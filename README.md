@@ -20,6 +20,10 @@ server.py contains contributions from:
 * Mandy Meindersma 
 * Zezhou Xiong
 
+Reference:
+https://stackoverflow.com/questions/1945920/why-doesnt-os-path-join-work-in-this-case
+https://pythonexamples.org/python-check-if-path-is-file-or-directory/
+
 But the server.py example is derived from the python documentation
 examples thus some of the code is Copyright © 2001-2022 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
