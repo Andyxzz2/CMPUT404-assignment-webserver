@@ -78,7 +78,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n{serving_file}', 'utf-8'))
                 file.close()
 
-        elif full_path.isdir(full_path):
+        elif os.full_path.isdir(full_path):
             if full_path.endswith("/"):
                 path = path + "index.html"
                 full_path = os.path.abspath('www'+path)
