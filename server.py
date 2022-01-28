@@ -26,70 +26,86 @@ import os
 # run: python freetests.py
 
 # try: curl -v -X GET http://127.0.0.1:8080/
-baseurl = "http://127.0.0.1:8080"
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
+
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
-        decoded_data = self.data.decode('utf-8')
-        request = decoded_data.split()
-        method = request[0]
-        path = request[1]
+        
+        #get request and splite method(only GET) and path 
+        self.data = self.data.decode('utf-8')
+        temp_data = self.data.split()
+        method = temp_data[0]
+        path = temp_data[1]
 
+        #check invalid method
         if self.check_method(method):
             self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed", 'utf-8'))
-            
+
+        #check invalid path    
         elif self.check_path(path):
             self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n", 'utf-8'))
 
+        #start handle
         else:
             self.response(method, path)
             
-
+    #this function simply check if method is "GET"
     def check_method(self, method):
         if method != "GET":
             return True
         else:
             return False
 
+    #this method check if a same level path or last level path is given
     def check_path(self, path):
         if "/." in path or "/.." in path:
             return True
         else:
             return False
 
+    #all test pass, start response
     def response(self, method, path):
-        full_path = os.path.join(os.getcwd()+"/www"+path)
-        print(full_path)
 
+        #get full path and compare in local
+        full_path = os.path.join(os.getcwd()+"/www"+path)
+
+        #if the given pass is a file, check if it is a html request or css request
         if os.path.isfile(full_path):
-            if full_path.endswith(".html"):
+            if full_path.endswith('html'):
 
                 file = open(full_path)
-                serving_file = file.read()
-                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
+                data = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{data}', 'utf-8'))
                 file.close()
 
-            elif full_path.endswith(".css"):
+            elif full_path.endswith('css'):
                 
                 file = open(full_path)
-                serving_file = file.read()
-                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n{serving_file}', 'utf-8'))
+                data = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n{data}', 'utf-8'))
                 file.close()
 
+        #if the path is a dir
         elif os.path.isdir(full_path):
+            
+            #if dir ends with /, add 'index.html' to open it
             if full_path.endswith('/'):
-                default_path = full_path+'index.html'
-                file = open(default_path)
-                serving_file = file.read()
-                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
+                default_route = path +'index.html'
+                full_path = os.path.join(os.getcwd()+"/www"+default_route)
+                file = open(full_path)
+                data = file.read()
+                self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{data}\r\n', 'utf-8'))
                 file.close()
+            
+            #if not, redirct, add / at the end
             else:
-                self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation: " + baseurl + path+'/'+"\r\n", 'utf-8'))
+                new_path = path + '/'
+                self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation: " + "http://127.0.0.1:8080" + new_path + "\r\n", 'utf-8'))
 
+        #for other cases, return 404 not found  
         else:
             self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n", 'utf-8'))
 
