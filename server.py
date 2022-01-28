@@ -62,7 +62,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             return False
 
     def response(self, method, path):
-        full_path = os.path.join(os.getcwd()+"/www"+request_route)
+        full_path = os.path.join(os.getcwd()+"/www"+path)
         print(full_path)
 
         if os.path.isfile(full_path):
@@ -82,10 +82,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         elif os.path.isdir(full_path):
             if full_path.endswith("/"):
-                path = path + "index.html"
-                full_path = os.path.join(os.getcwd()+"/www"+request_route)
+                path = path+'index.html'
+                full_path = os.path.join(os.getcwd()+"/www"+path)
 
-                file = open(path)
+                file = open(full_path)
                 serving_file = file.read()
                 self.request.sendall(bytearray(f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{serving_file}', 'utf-8'))
                 file.close()
